@@ -4,7 +4,7 @@
       <div class="header-left">
         <span class="logo">📋</span>
         <h1 class="title">MD Generator</h1>
-        <span class="subtitle">Markdown文档生成工具</span>
+        <span class="subtitle">{{ lang === 'zh' ? 'Markdown文档生成工具' : 'Markdown Doc Generator' }}</span>
       </div>
       <div class="header-right">
         <div class="header-actions">
@@ -17,7 +17,7 @@
             <option value="dark">暗色</option>
             <option value="light">亮色</option>
           </select>
-          <a href="https://github.com" target="_blank" class="gh-link">GitHub</a>
+          <a href="https://github.com/md-generator/md-generator" target="_blank" rel="noopener noreferrer" class="gh-link">GitHub</a>
         </div>
       </div>
     </header>
@@ -64,11 +64,11 @@ const navMetaMap = {
 
 const navItems = computed(() =>
   router.options.routes
-    .filter(r => r.path !== '/')
+    .filter(r => r.meta)
     .map(r => ({
       ...r,
-      metaTitle: t[lang.value][navMetaMap[r.path]?.key] || r.meta.title,
-      metaIcon: navMetaMap[r.path]?.icon || r.meta.icon,
+      metaTitle: t[lang.value][navMetaMap[r.path]?.key] || r.meta?.title || r.name,
+      metaIcon: navMetaMap[r.path]?.icon || r.meta?.icon,
     }))
 )
 </script>

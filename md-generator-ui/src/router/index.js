@@ -28,6 +28,11 @@ const routes = [
     name: 'Convert',
     component: () => import('../views/ConvertView.vue'),
     meta: { title: '格式转换', icon: '🔄' }
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../views/NotFound.vue')
   }
 ]
 

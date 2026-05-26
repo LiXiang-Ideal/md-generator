@@ -88,4 +88,27 @@ class PathValidatorTest {
             PathValidator.validatePath("/path/with\0null");
         });
     }
+
+    @Test
+    @DisplayName("测试并发添加允许根目录")
+    void testConcurrentAddAllowedRoot() throws InterruptedException {
+        String tempDir = System.getProperty("java.io.tmpdir");
+        Thread[] threads = new Thread[10];
+        for (int i = 0; i < threads.length; i++) {
+            final int idx = i;
+            threads[i] = new Thread(() -> {
+                PathValidator.addAllowedRoot(tempDir + java.io.File.separator + "concurrent_test_" + idx);
+            });
+        }
+        for (Thread t : threads) t.start();
+        for (Thread t : threads) t.join();
+    }
+
+    @Test
+    @DisplayName("测试addAllowedRoot忽略null和空字符串")
+    void testAddAllowedRootIgnoresInvalid() {
+        assertDoesNotThrow(() -> PathValidator.addAllowedRoot(null));
+        assertDoesNotThrow(() -> PathValidator.addAllowedRoot(""));
+        assertDoesNotThrow(() -> PathValidator.addAllowedRoot("   "));
+    }
 }

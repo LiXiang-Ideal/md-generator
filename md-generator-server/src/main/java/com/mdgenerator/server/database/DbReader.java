@@ -440,7 +440,7 @@ public class DbReader {
             try {
                 connection.close();
             } catch (SQLException e) {
-                System.err.println("关闭数据库连接时发生异常：" + e.getMessage());
+                logger.warn("关闭数据库连接时发生异常：{}", e.getMessage());
             }
         }
     }

@@ -124,7 +124,7 @@ public class MdBuilder {
      * @return 当前MdBuilder实例，支持链式调用
      */
     public MdBuilder addParagraph(String text) {
-        content.append(text).append("\n\n");
+        content.append(text != null ? text : "").append("\n\n");
         return this;
     }
 
@@ -137,7 +137,8 @@ public class MdBuilder {
      * @return 当前MdBuilder实例，支持链式调用
      */
     public MdBuilder addBold(String text) {
-        content.append("**").append(text).append("**");
+        String safe = text != null ? text : "";
+        content.append("**").append(safe).append("**");
         return this;
     }
 
@@ -150,7 +151,8 @@ public class MdBuilder {
      * @return 当前MdBuilder实例，支持链式调用
      */
     public MdBuilder addItalic(String text) {
-        content.append("*").append(text).append("*");
+        String safe = text != null ? text : "";
+        content.append("*").append(safe).append("*");
         return this;
     }
 
@@ -163,7 +165,8 @@ public class MdBuilder {
      * @return 当前MdBuilder实例，支持链式调用
      */
     public MdBuilder addInlineCode(String text) {
-        content.append("`").append(text).append("`");
+        String safe = text != null ? text : "";
+        content.append("`").append(safe).append("`");
         return this;
     }
 
@@ -176,7 +179,8 @@ public class MdBuilder {
      * @return 当前MdBuilder实例，支持链式调用
      */
     public MdBuilder addStrikethrough(String text) {
-        content.append("~~").append(text).append("~~");
+        String safe = text != null ? text : "";
+        content.append("~~").append(safe).append("~~");
         return this;
     }
 

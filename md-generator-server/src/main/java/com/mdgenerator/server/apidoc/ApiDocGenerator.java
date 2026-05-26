@@ -192,16 +192,16 @@ public class ApiDocGenerator {
 
         // 生成路径参数表格
         if (!pathParams.isEmpty()) {
-generateParamTable(pathParams, zh("路径参数", "Path Params"));
-            }
-            if (!queryParams.isEmpty()) {
-                generateParamTable(queryParams, zh("Query参数", "Query Params"));
-            }
-            if (!bodyParams.isEmpty()) {
-                generateParamTable(bodyParams, zh("请求体参数", "Body Params"));
-            }
-            if (!headerParams.isEmpty()) {
-                generateParamTable(headerParams, zh("请求头参数", "Header Params"));
+            generateParamTable(pathParams, zh("路径参数", "Path Params"));
+        }
+        if (!queryParams.isEmpty()) {
+            generateParamTable(queryParams, zh("Query参数", "Query Params"));
+        }
+        if (!bodyParams.isEmpty()) {
+            generateParamTable(bodyParams, zh("请求体参数", "Body Params"));
+        }
+        if (!headerParams.isEmpty()) {
+            generateParamTable(headerParams, zh("请求头参数", "Header Params"));
         }
 
         // 生成返回值说明

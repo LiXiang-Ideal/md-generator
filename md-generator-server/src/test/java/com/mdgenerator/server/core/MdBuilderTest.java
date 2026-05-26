@@ -154,4 +154,125 @@ class MdBuilderTest {
         assertTrue(result.contains("| ID |"));
         assertTrue(elapsed < 1000, "大表格生成应该在1秒内完成，实际耗时: " + elapsed + "ms");
     }
+
+    @Test
+    @DisplayName("测试null段落处理")
+    void testNullParagraph() {
+        String result = builder.addParagraph(null).build();
+        assertFalse(result.contains("null"));
+    }
+
+    @Test
+    @DisplayName("测试null粗体处理")
+    void testNullBold() {
+        String result = builder.addBold(null).build();
+        assertEquals("****", result);
+    }
+
+    @Test
+    @DisplayName("测试null斜体处理")
+    void testNullItalic() {
+        String result = builder.addItalic(null).build();
+        assertEquals("**", result);
+    }
+
+    @Test
+    @DisplayName("测试null行内代码处理")
+    void testNullInlineCode() {
+        String result = builder.addInlineCode(null).build();
+        assertEquals("``", result);
+    }
+
+    @Test
+    @DisplayName("测试null删除线处理")
+    void testNullStrikethrough() {
+        String result = builder.addStrikethrough(null).build();
+        assertEquals("~~~~", result);
+    }
+
+    @Test
+    @DisplayName("测试任务列表")
+    void testTaskList() {
+        String result = builder.addTaskList(
+            new String[]{"任务1", "任务2"},
+            new boolean[]{true, false}
+        ).build();
+        assertTrue(result.contains("- [x] 任务1"));
+        assertTrue(result.contains("- [ ] 任务2"));
+    }
+
+    @Test
+    @DisplayName("测试添加注释")
+    void testAddComment() {
+        String result = builder.addComment("这是一个注释").build();
+        assertTrue(result.contains("<!-- 这是一个注释 -->"));
+    }
+
+    @Test
+    @DisplayName("测试添加折叠面板")
+    void testAddCollapsible() {
+        String result = builder.addCollapsible("点击展开", "隐藏内容").build();
+        assertTrue(result.contains("<details>"));
+        assertTrue(result.contains("<summary>点击展开</summary>"));
+        assertTrue(result.contains("隐藏内容"));
+        assertTrue(result.contains("</details>"));
+    }
+
+    @Test
+    @DisplayName("测试添加目录")
+    void testAddTableOfContents() {
+        String[][] headings = {
+            {"Introduction", "1"},
+            {"Getting Started", "2"},
+            {"Installation", "3"}
+        };
+        String result = builder.addTableOfContents(headings).build();
+        assertTrue(result.contains("## 目录"));
+        assertTrue(result.contains("[Introduction](#introduction)"));
+        assertTrue(result.contains("[Getting Started](#getting-started)"));
+        assertTrue(result.contains("[Installation](#installation)"));
+    }
+
+    @Test
+    @DisplayName("测试添加图片")
+    void testAddImage() {
+        String result = builder.addImage("logo", "https://example.com/logo.png", "My Logo").build();
+        assertTrue(result.contains("![logo](https://example.com/logo.png \"My Logo\")"));
+    }
+
+    @Test
+    @DisplayName("测试添加Badge")
+    void testAddBadge() {
+        String result = builder.addBadge("build", "passing", "green").build();
+        assertTrue(result.contains("![build](https://img.shields.io/badge/build-passing-green)"));
+    }
+
+    @Test
+    @DisplayName("测试添加空行和换行")
+    void testAddEmptyLineAndLineBreak() {
+        String result = builder.addParagraph("line1").addLineBreak().addParagraph("line2").build();
+        assertTrue(result.contains("line1"));
+        assertTrue(result.contains("line2"));
+    }
+
+    @Test
+    @DisplayName("测试appendRaw")
+    void testAppendRaw() {
+        String result = builder.addH1("Title").appendRaw("<!-- raw -->").build();
+        assertTrue(result.contains("# Title"));
+        assertTrue(result.contains("<!-- raw -->"));
+    }
+
+    @Test
+    @DisplayName("测试saveToFile")
+    void testSaveToFile() {
+        builder.addH1("Test Document").addParagraph("Content here");
+        String tempDir = System.getProperty("java.io.tmpdir");
+        String filePath = builder.saveToFile(tempDir, "test_doc");
+        assertTrue(filePath.endsWith(".md"));
+        java.io.File file = new java.io.File(filePath);
+        assertTrue(file.exists());
+        assertTrue(file.length() > 0);
+        file.delete();
+    }
 }

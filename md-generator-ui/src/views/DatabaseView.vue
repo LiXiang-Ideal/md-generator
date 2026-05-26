@@ -11,7 +11,12 @@
         <div class="form-grid">
           <div class="form-group">
             <label>{{ lang==='zh'?'类型':'Type' }}</label>
-            <select v-model="config.dbType" class="form-input"><option value="mysql">MySQL</option></select>
+            <select v-model="config.dbType" class="form-input">
+              <option value="mysql">MySQL</option>
+              <option value="postgresql">PostgreSQL</option>
+              <option value="oracle">Oracle</option>
+              <option value="sqlserver">SQL Server</option>
+            </select>
           </div>
           <div class="form-group">
             <label>{{ lang==='zh'?'主机':'Host' }}</label>
@@ -67,6 +72,7 @@
           <h3>Preview</h3>
           <div class="preview-actions">
             <button v-if="mdContent" class="btn btn--primary" @click="downloadDoc">DOWN .md</button>
+            <button v-if="mdContent" class="btn" @click="copyDoc">{{ copyLabel }}</button>
             <button v-if="mdContent" class="btn" @click="showRaw=!showRaw">{{ showRaw?'EYE':'RAW' }}</button>
           </div>
         </div>
@@ -82,7 +88,7 @@
 
 <script setup>
 import { ref, reactive, computed } from 'vue'
-import { renderMarkdown, downloadMarkdown } from '../utils/markdown.js'
+import { renderMarkdown, downloadMarkdown, copyToClipboard } from '../utils/markdown.js'
 import { connectDatabase, generateDbDoc, disconnectDatabase } from '../utils/api.js'
 import { useLang } from '../composables/useLang.js'
 
@@ -150,9 +156,15 @@ function toggleAll() {
 }
 
 function loadDemo() {
-  lang.value = 'zh'; mdContent.value = demoZh(); tableList.value = []
+  mdContent.value = demoZh(); tableList.value = []
 }
 function downloadDoc() { downloadMarkdown(mdContent.value, 'database_doc_'+(config.dbName||'db')+'.md') }
+
+const copyLabel = ref('COPY')
+async function copyDoc() {
+  const ok = await copyToClipboard(mdContent.value)
+  if (ok) { copyLabel.value = 'OK!'; setTimeout(() => copyLabel.value = 'COPY', 1500) }
+}
 
 function demoZh() {
   const ts = [ {n:'user_info',c:'用户信息表',cols:[['id','BIGINT(20)','✓','✓','','用户ID，自增'],['username','VARCHAR(50)','','✓','','用户名'],['email','VARCHAR(100)','','✓','','邮箱'],['password_hash','VARCHAR(255)','','✓','','密码哈希'],['phone','VARCHAR(20)','','','','手机号'],['status','TINYINT(1)','','✓','1','0禁用 1启用'],['created_at','DATETIME','','✓','CURRENT_TIMESTAMP','创建时间']]}, {n:'product',c:'商品表',cols:[['id','BIGINT(20)','✓','✓','','商品ID'],['name','VARCHAR(200)','','✓','','商品名称'],['category_id','BIGINT(20)','','✓','','分类ID'],['price','DECIMAL(10,2)','','✓','0.00','价格'],['stock','INT(11)','','✓','0','库存']]}, {n:'order_main',c:'订单表',cols:[['id','BIGINT(20)','✓','✓','','订单ID'],['order_no','VARCHAR(32)','','✓','','订单编号'],['user_id','BIGINT(20)','','✓','','用户ID'],['total_amount','DECIMAL(12,2)','','✓','0.00','总金额'],['pay_status','TINYINT(1)','','✓','0','0未付 1已付 2退款'],['created_at','DATETIME','','✓','CURRENT_TIMESTAMP','下单时间']]}]

@@ -2,14 +2,23 @@ import { marked } from 'marked'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/github-dark.css'
 
-marked.setOptions({
+marked.use({
   breaks: true,
-  gfm: true,
-  highlight: function (code, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      return hljs.highlight(code, { language: lang }).value
+  gfm: true
+})
+
+marked.use({
+  renderer: {
+    code({ text, lang }) {
+      const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext'
+      let highlighted
+      try {
+        highlighted = hljs.highlight(text || '', { language }).value
+      } catch {
+        highlighted = text || ''
+      }
+      return `<pre><code class="hljs language-${language}">${highlighted}</code></pre>`
     }
-    return hljs.highlightAuto(code).value
   }
 })
 
@@ -31,4 +40,21 @@ export function downloadMarkdown(content, filename = 'document.md') {
   a.click()
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
+}
+
+export async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    return ok
+  }
 }

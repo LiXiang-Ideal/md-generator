@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8080/api'
+const API_BASE = import.meta.env.VITE_API_BASE || '/api'
 
 /**
  * 通用请求封装
@@ -48,8 +48,8 @@ export function generateDbDoc(params) {
 }
 
 /** 断开数据库连接 */
-export function disconnectDatabase() {
-  return post('/database/disconnect', {})
+export function disconnectDatabase(params) {
+  return post('/database/disconnect', params)
 }
 
 // ========== API文档 ==========

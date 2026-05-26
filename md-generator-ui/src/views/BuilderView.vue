@@ -70,6 +70,8 @@
                 <div class="el-actions">
                   <button class="el-btn el-btn--add" @click="addTableRow(el);buildMd()">+Row</button>
                   <button class="el-btn el-btn--add" @click="addTableCol(el);buildMd()">+Col</button>
+                  <button class="el-btn el-btn--del" @click="removeTableRow(el);buildMd()" :disabled="el.rows.length<=1">-Row</button>
+                  <button class="el-btn el-btn--del" @click="removeTableCol(el);buildMd()" :disabled="el.headers.length<=1">-Col</button>
                   <button class="el-btn" @click="moveElement(idx,-1)" :disabled="idx===0">UP</button>
                   <button class="el-btn" @click="moveElement(idx,1)" :disabled="idx===elements.length-1">DN</button>
                   <button class="el-btn el-btn--del" @click="removeElement(idx)">X</button>
@@ -131,6 +133,7 @@
           <h3>Preview</h3>
           <div class="preview-actions">
             <button class="btn btn--primary" @click="downloadDoc" :disabled="!mdOutput">DOWN .md</button>
+            <button class="btn" @click="copyMd" :disabled="!mdOutput">{{ copyLabel }}</button>
             <button class="btn" @click="showRaw=!showRaw">{{ showRaw?'EYE':'RAW' }}</button>
           </div>
         </div>
@@ -145,7 +148,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { renderMarkdown, downloadMarkdown } from '../utils/markdown.js'
+import { renderMarkdown, downloadMarkdown, copyToClipboard } from '../utils/markdown.js'
 import { buildMarkdown } from '../utils/api.js'
 import { useLang } from '../composables/useLang.js'
 
@@ -157,6 +160,14 @@ const elements = ref([])
 const showRaw = ref(false)
 const mdOutput = ref('')
 const loading = ref(false)
+
+let debounceTimer = null
+function debounce(fn, delay = 300) {
+  return (...args) => {
+    clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => fn(...args), delay)
+  }
+}
 
 const renderedHtml = computed(() => renderMarkdown(mdOutput.value))
 
@@ -171,16 +182,24 @@ function serverBuildMap(el) {
   return m
 }
 
-async function buildMd() {
+const debouncedBuildMd = debounce(buildMdImmediate, 300)
+
+async function buildMdImmediate() {
   if (elements.value.length === 0) { mdOutput.value = ''; return }
+  loading.value = true
   try {
     const serverElements = elements.value.map(serverBuildMap)
     const result = await buildMarkdown(serverElements)
     mdOutput.value = result.markdown || ''
   } catch (e) {
-    // fallback: use frontend generation if server unavailable
     mdOutput.value = buildMdFrontend()
+  } finally {
+    loading.value = false
   }
+}
+
+function buildMd() {
+  debouncedBuildMd()
 }
 
 function buildMdFrontend() {
@@ -217,10 +236,18 @@ function addOrderedList(){ elements.value.push({id:genId(),type:'ordered-list',i
 function addHorizontalRule(){ elements.value.push({id:genId(),type:'hr'}); buildMd() }
 function addTableRow(el){ el.rows.push(el.headers.map(()=>'')) }
 function addTableCol(el){ el.headers.push('New'); el.rows.forEach(r=>r.push('')) }
+function removeTableRow(el){ if(el.rows.length>1) el.rows.pop() }
+function removeTableCol(el){ if(el.headers.length>1){ el.headers.pop(); el.rows.forEach(r=>r.pop()) } }
 function removeElement(idx){ elements.value.splice(idx,1); buildMd() }
 function moveElement(idx,dir){ const ni=idx+dir; if(ni<0||ni>=elements.value.length)return; const t=elements.value[idx];elements.value[idx]=elements.value[ni];elements.value[ni]=t;elements.value=[...elements.value];buildMd() }
 function clearAll(){ if(confirm('Clear all elements?')){ elements.value=[]; mdOutput.value='' } }
 function downloadDoc(){ const ts=new Date().toISOString().slice(0,16).replace('T','_').replace(':',''); downloadMarkdown(mdOutput.value, 'document_'+ts+'.md') }
+
+const copyLabel = ref('COPY')
+async function copyMd() {
+  const ok = await copyToClipboard(mdOutput.value)
+  if (ok) { copyLabel.value = 'OK!'; setTimeout(() => copyLabel.value = 'COPY', 1500) }
+}
 
 // trigger initial build immediately (empty)
 </script>

@@ -5,8 +5,8 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 路径安全验证工具
@@ -22,11 +22,15 @@ public final class PathValidator {
     private PathValidator() {}
 
     /** 允许访问的根目录白名单（可配置） */
-    private static final Set<String> ALLOWED_ROOTS = new HashSet<>(Arrays.asList(
-            System.getProperty("user.home"),
-            System.getProperty("java.io.tmpdir"),
-            System.getProperty("user.dir")
-    ));
+    private static final Set<String> ALLOWED_ROOTS = ConcurrentHashMap.newKeySet();
+
+    static {
+        ALLOWED_ROOTS.addAll(Arrays.asList(
+                System.getProperty("user.home"),
+                System.getProperty("java.io.tmpdir"),
+                System.getProperty("user.dir")
+        ));
+    }
 
     /**
      * 验证路径是否合法且在允许范围内

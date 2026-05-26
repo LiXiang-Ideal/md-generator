@@ -33,6 +33,17 @@ public class DatabaseController {
         String dbName;
         String dbType;
         long createdAt;
+        volatile long lastAccessedAt;
+
+        SessionInfo() {
+            long now = System.currentTimeMillis();
+            this.createdAt = now;
+            this.lastAccessedAt = now;
+        }
+
+        void touch() {
+            this.lastAccessedAt = System.currentTimeMillis();
+        }
     }
 
     /**
@@ -81,7 +92,6 @@ public class DatabaseController {
             SessionInfo info = new SessionInfo();
             info.dbName = dbName;
             info.dbType = dbType;
-            info.createdAt = System.currentTimeMillis();
             sessionInfo.put(sessionId, info);
 
             List<Map<String, Object>> result = tables.stream().map(t -> {
@@ -127,6 +137,7 @@ public class DatabaseController {
         if (info == null) {
             return ApiResponse.error(400, "会话信息丢失");
         }
+        info.touch();
 
         @SuppressWarnings("unchecked")
         List<String> selectedTables = (List<String>) params.get("tables");
@@ -183,11 +194,13 @@ public class DatabaseController {
     public ApiResponse<String> cleanupExpiredSessions() {
         long expireTime = System.currentTimeMillis() - 30 * 60 * 1000;
         int cleaned = 0;
-        for (Map.Entry<String, SessionInfo> entry : sessionInfo.entrySet()) {
-            if (entry.getValue().createdAt < expireTime) {
+        Iterator<Map.Entry<String, SessionInfo>> it = sessionInfo.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, SessionInfo> entry = it.next();
+            if (entry.getValue().lastAccessedAt < expireTime) {
                 String sessionId = entry.getKey();
                 DbReader reader = sessions.remove(sessionId);
-                sessionInfo.remove(sessionId);
+                it.remove();
                 if (reader != null) {
                     closeReader(reader);
                 }

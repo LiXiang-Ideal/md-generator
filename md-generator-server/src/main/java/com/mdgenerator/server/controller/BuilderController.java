@@ -115,6 +115,56 @@ public class BuilderController {
                     builder.addItalic((String) el.getOrDefault("text", ""));
                     break;
                 }
+                case "strikethrough": {
+                    builder.addStrikethrough((String) el.getOrDefault("text", ""));
+                    break;
+                }
+                case "inline-code": {
+                    builder.addInlineCode((String) el.getOrDefault("text", ""));
+                    break;
+                }
+                case "task-list": {
+                    @SuppressWarnings("unchecked")
+                    List<String> items = (List<String>) el.get("items");
+                    @SuppressWarnings("unchecked")
+                    List<Boolean> completions = (List<Boolean>) el.get("completions");
+                    if (items != null) {
+                        boolean[] compArr = null;
+                        if (completions != null) {
+                            compArr = new boolean[completions.size()];
+                            for (int i = 0; i < completions.size(); i++) {
+                                compArr[i] = Boolean.TRUE.equals(completions.get(i));
+                            }
+                        }
+                        builder.addTaskList(items.toArray(new String[0]), compArr);
+                    }
+                    break;
+                }
+                case "comment": {
+                    builder.addComment((String) el.getOrDefault("content", ""));
+                    break;
+                }
+                case "collapsible": {
+                    builder.addCollapsible(
+                        (String) el.getOrDefault("summary", ""),
+                        (String) el.getOrDefault("detail", "")
+                    );
+                    break;
+                }
+                case "toc": {
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> headings = (List<Map<String, Object>>) el.get("headings");
+                    if (headings != null) {
+                        String[][] headingsArr = new String[headings.size()][2];
+                        for (int i = 0; i < headings.size(); i++) {
+                            Map<String, Object> h = headings.get(i);
+                            headingsArr[i][0] = (String) h.getOrDefault("text", "");
+                            headingsArr[i][1] = String.valueOf(h.getOrDefault("level", 1));
+                        }
+                        builder.addTableOfContents(headingsArr);
+                    }
+                    break;
+                }
             }
         }
 

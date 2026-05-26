@@ -120,6 +120,7 @@ const activeApi = ref(null)
 const showRawMd = ref(false)
 const sourceDir = ref('')
 const scanError = ref('')
+const backendMd = ref('')
 
 function onDirPicked(e) {
   const files = e.target.files
@@ -190,6 +191,7 @@ async function scanSource() {
   try {
     const result = await generateApiDoc({ sourceDir: sourceDir.value, title: 'API Document' })
     if (result.controllers) controllerList.value = result.controllers
+    if (result.markdown) backendMd.value = result.markdown
     activeCtrl.value = 0; activeApi.value = null
   } catch (e) {
     scanError.value = e.message
@@ -197,7 +199,7 @@ async function scanSource() {
 }
 
 function loadDemo() { controllerList.value = demoData(); activeCtrl.value=0; activeApi.value=null }
-function downloadMd() { downloadMarkdown(genMd.value, 'api_doc.md') }
+function downloadMd() { downloadMarkdown(backendMd.value || genMd.value, 'api_doc.md') }
 
 function demoData() {
   return [
